@@ -6,7 +6,7 @@ type Body = { value: number };
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await ensureUser();
   const body = (await request.json()) as Body;
@@ -16,7 +16,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid vote value" }, { status: 400 });
   }
 
-  const reviewId = params.id;
+  const { id: reviewId } = await params;
 
   // buscar voto existente
   const existing = await prisma.vote.findUnique({

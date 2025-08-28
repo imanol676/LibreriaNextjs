@@ -29,6 +29,19 @@ export default function ReviewClient(props: {
     setError(null);
     try {
       const res = await fetch(`/api/books/${encodeURIComponent(googleId)}`);
+
+      // Verificar el tipo de contenido antes de parsear JSON
+      const contentType = res.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        const text = await res.text();
+        console.error("API devolvió contenido no-JSON:", text);
+        setError(
+          `Error del servidor: Respuesta no válida (código ${res.status})`
+        );
+        setReviews([]);
+        return;
+      }
+
       const json = await res.json();
       if (!res.ok) {
         const msg = json?.error ?? JSON.stringify(json);
@@ -38,7 +51,8 @@ export default function ReviewClient(props: {
         setReviews(json?.local?.reviews ?? []);
       }
     } catch (e: any) {
-      setError(e?.message ?? String(e));
+      console.error("Error cargando reseñas:", e);
+      setError(`Error cargando reseñas: ${e?.message ?? String(e)}`);
       setReviews([]);
     }
     setLoading(false);
@@ -51,34 +65,70 @@ export default function ReviewClient(props: {
   async function submitReview(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    await fetch("/api/reviews", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        googleId,
-        title,
-        authors,
-        thumbnail,
-        rating,
-        content,
-      }),
-    });
-    setContent("");
-    setRating(5);
-    await load();
-    setSubmitting(false);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          googleId,
+          title,
+          authors,
+          thumbnail,
+          rating,
+          content,
+        }),
+      });
+
+      if (!res.ok) {
+        const contentType = res.headers.get("content-type");
+        if (contentType?.includes("application/json")) {
+          const errorData = await res.json();
+          setError(
+            `Error al enviar reseña: ${errorData.error || "Error desconocido"}`
+          );
+        } else {
+          setError(`Error al enviar reseña: Código de estado ${res.status}`);
+        }
+        return;
+      }
+
+      setContent("");
+      setRating(5);
+      await load();
+    } catch (e: any) {
+      console.error("Error enviando reseña:", e);
+      setError(`Error enviando reseña: ${e?.message ?? String(e)}`);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function vote(reviewId: string, value: 1 | -1) {
-    const res = await fetch(`/api/reviews/${reviewId}/vote`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ value }),
-    });
-    const json = await res.json();
+    try {
+      const res = await fetch(`/api/reviews/${reviewId}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value }),
+      });
 
-    await load();
-    return json;
+      if (!res.ok) {
+        console.error(`Error votando: ${res.status}`);
+        return { error: `Error del servidor: ${res.status}` };
+      }
+
+      const contentType = res.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        console.error("Respuesta no-JSON al votar");
+        return { error: "Respuesta del servidor no válida" };
+      }
+
+      const json = await res.json();
+      await load();
+      return json;
+    } catch (e: any) {
+      console.error("Error votando:", e);
+      return { error: e?.message ?? String(e) };
+    }
   }
 
   return (

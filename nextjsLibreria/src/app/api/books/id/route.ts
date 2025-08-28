@@ -3,10 +3,10 @@ import { getBookById, pickThumb } from "@/lib/googleBooks";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  _: unknown,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const bookId = params.id;
+  const { id: bookId } = await params;
 
   if (!bookId) {
     return NextResponse.json({ error: "Book ID is required" }, { status: 400 });
@@ -41,14 +41,26 @@ export async function GET(
       include: { reviews: { include: { user: true, votes: true } } },
     });
 
-    const local = dbBook.reviews.map((r) => ({
-      id: r.id,
-      rating: r.rating,
-      content: r.content,
-      createdAt: r.createdAt,
-      user: { id: r.user.id, displayName: r.user.name ?? "Guest" },
-      score: r.votes.reduce((s, v) => s + v.value, 0),
-    }));
+    const local = dbBook.reviews.map(
+      (r: {
+        id: string;
+        rating: number;
+        content: string;
+        createdAt: Date;
+        user: { id: string; name: string | null };
+        votes: { value: number }[];
+      }) => ({
+        id: r.id,
+        rating: r.rating,
+        content: r.content,
+        createdAt: r.createdAt,
+        user: { id: r.user.id, displayName: r.user.name ?? "Guest" },
+        score: r.votes.reduce(
+          (s: number, v: { value: number }) => s + v.value,
+          0
+        ),
+      })
+    );
 
     return NextResponse.json({ ...mappedBook, local: { reviews: local } });
   } catch (error) {

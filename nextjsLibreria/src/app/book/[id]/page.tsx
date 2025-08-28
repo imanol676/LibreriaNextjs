@@ -1,8 +1,13 @@
 import { pickThumb, getBookById } from "@/lib/googleBooks";
 import ReviewClient from "./review-client";
 
-export default async function BookPage({ params }: { params: { id: string } }) {
-  const g = await getBookById(params.id);
+export default async function BookPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const g = await getBookById(id);
 
   if (!g) {
     return (
@@ -33,8 +38,8 @@ export default async function BookPage({ params }: { params: { id: string } }) {
       </div>
 
       <section className="mt-6">
-        <h2 className="text-xl font-medium">Descripción</h2>
-        <p className="mt-2 whitespace-pre-wrap opacity-90">
+        <h2 className="text-2xl font-medium">Descripción</h2>
+        <p className="mt-2 text-justify opacity-80 whitespace-pre-wrap">
           {g.volumeInfo.description ?? "Sin descripción."}
         </p>
       </section>
