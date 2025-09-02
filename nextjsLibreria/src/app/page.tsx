@@ -164,6 +164,13 @@ export default function Home() {
           </div>
         )}
       </main>
+      {/* Footer */}
+      <footer className="text-center py-6 border-t border-white/10">
+        <p className="text-gray-400">
+          &copy; {new Date().getFullYear()} ElPapuLector. Todos los derechos
+          reservados.
+        </p>
+      </footer>
     </div>
   );
 }
