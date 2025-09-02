@@ -50,9 +50,11 @@ export default function ReviewClient(props: {
       } else {
         setReviews(json?.local?.reviews ?? []);
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Error cargando reseñas:", e);
-      setError(`Error cargando reseñas: ${e?.message ?? String(e)}`);
+      setError(
+        `Error cargando reseñas: ${e instanceof Error ? e.message : String(e)}`
+      );
       setReviews([]);
     }
     setLoading(false);
@@ -60,7 +62,7 @@ export default function ReviewClient(props: {
 
   useEffect(() => {
     load();
-  }, [googleId]);
+  }, [googleId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function submitReview(e: React.FormEvent) {
     e.preventDefault();
@@ -95,9 +97,11 @@ export default function ReviewClient(props: {
       setContent("");
       setRating(5);
       await load();
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Error enviando reseña:", e);
-      setError(`Error enviando reseña: ${e?.message ?? String(e)}`);
+      setError(
+        `Error enviando reseña: ${e instanceof Error ? e.message : String(e)}`
+      );
     } finally {
       setSubmitting(false);
     }
@@ -125,9 +129,9 @@ export default function ReviewClient(props: {
       const json = await res.json();
       await load();
       return json;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Error votando:", e);
-      return { error: e?.message ?? String(e) };
+      return { error: e instanceof Error ? e.message : String(e) };
     }
   }
 

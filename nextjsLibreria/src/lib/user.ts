@@ -6,7 +6,7 @@ const COOKIE_NAME = "userId";
 
 export async function ensureUser() {
   const store = await cookies();
-  let userId = store.get(COOKIE_NAME)?.value;
+  const userId = store.get(COOKIE_NAME)?.value;
 
   if (userId) {
     const exists = await prisma.user.findUnique({ where: { id: userId } });

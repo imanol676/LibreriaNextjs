@@ -50,7 +50,7 @@ export async function GET(
           include: { reviews: { include: { user: true, votes: true } } },
         });
         break;
-      } catch (dbError: any) {
+      } catch (dbError: unknown) {
         retries--;
         console.error(`Database error (${retries} retries left):`, dbError);
 

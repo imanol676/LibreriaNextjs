@@ -46,7 +46,7 @@ export async function GET(
         rating: number;
         content: string;
         createdAt: Date;
-        user: { id: string; name?: string };
+        user: { id: string; name: string | null };
         votes: { value: number }[];
       }) => ({
         id: r.id,
