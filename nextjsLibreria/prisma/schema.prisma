@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url = env("DATABASE_CONNECTION_STRING")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -26,17 +27,16 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?   // <- sin @db.Text
-  access_token      String?   // <- sin @db.Text
+  refresh_token     String?   @db.Text
+  access_token      String?   @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?   // <- sin @db.Text
+  id_token          String?   @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
 }
-
 
 model Session {
   id           String   @id @default(cuid())
@@ -54,40 +54,39 @@ model VerificationToken {
 }
 
 model Book {
-  id            String   @id
+  id            String   @id @default(cuid())
   title         String
-  authors       Json?      // array de strings como JSON
+  authors       Json?      
   thumbnailUrl  String?
-  description   String?
+  description   String?   @db.Text
   pageCount     Int?
-  categories    Json?      // array de strings como JSON
+  categories    Json?     
   publishedDate String?
   createdAt     DateTime @default(now())
   reviews       Review[]
 }
-
 
 model Review {
   id        String   @id @default(cuid())
   bookId    String
   userId    String
   rating    Int
-  content   String
+  content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   votes     Vote[]
-  @@unique([bookId, userId]) // una reseña por usuario por libro
+  @@unique([bookId, userId])
 }
 
 model Vote {
   id        String   @id @default(cuid())
   reviewId  String
   userId    String
-  value     Int      // -1 o +1
+  value     Int
   createdAt DateTime @default(now())
   review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@unique([reviewId, userId]) // un voto por usuario por reseña
+  @@unique([reviewId, userId])
 }
