@@ -27,19 +27,45 @@ export async function GET(
       thumbnail: pickThumb(book.volumeInfo),
     };
 
-    // Save to database and fetch local reviews
-    const dbBook = await prisma.book.upsert({
-      where: { id: bookId },
-      update: {},
-      create: {
-        id: bookId,
-        title: mappedBook.title ?? "",
-        authors: mappedBook.authors.join(", "),
-        description: mappedBook.description,
-        thumbnailUrl: mappedBook.thumbnail,
-      },
-      include: { reviews: { include: { user: true, votes: true } } },
-    });
+    let dbBook;
+    let retries = 3;
+
+    while (retries > 0) {
+      try {
+        dbBook = await prisma.book.upsert({
+          where: { id: bookId },
+          update: {
+            title: mappedBook.title ?? "",
+            authors: mappedBook.authors.join(", "),
+            description: mappedBook.description,
+            thumbnailUrl: mappedBook.thumbnail,
+          },
+          create: {
+            id: bookId,
+            title: mappedBook.title ?? "",
+            authors: mappedBook.authors.join(", "),
+            description: mappedBook.description,
+            thumbnailUrl: mappedBook.thumbnail,
+          },
+          include: { reviews: { include: { user: true, votes: true } } },
+        });
+        break;
+      } catch (dbError: any) {
+        retries--;
+        console.error(`Database error (${retries} retries left):`, dbError);
+
+        if (retries === 0) {
+          throw dbError;
+        }
+
+        // Wait briefly before retry
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+
+    if (!dbBook) {
+      throw new Error("Failed to create or retrieve book from database");
+    }
 
     const local = dbBook.reviews.map(
       (r: {
