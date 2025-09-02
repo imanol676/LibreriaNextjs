@@ -166,6 +166,13 @@ export default function Home() {
       </main>
       {/* Footer */}
       <footer className="text-center py-6 border-t border-white/10">
+        <h4 className="text-5xl md:text-7xl font-bold text-white mb-6">
+          ElPapu
+          <span className="bg-gradient-to-r from-violet-400 to-violet-400 bg-clip-text text-transparent">
+            Lector
+          </span>
+        </h4>
+
         <p className="text-gray-400">
           &copy; {new Date().getFullYear()} ElPapuLector. Todos los derechos
           reservados.
