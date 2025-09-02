@@ -13,12 +13,28 @@ jobs:
     defaults:
       run:
         working-directory: ./nextjsLibreria
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     env:
-      DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
-      DIRECT_URL: ${{ secrets.DIRECT_URL }}
-      PASSWORD: ${{ secrets.PASSWORD }}
+      DATABASE_CONNECTION_STRING: "postgresql://postgres:postgres@localhost:5432/test"
+      DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/test"
+      PASSWORD: "test_password"
       NEXTAUTH_URL: "http://localhost:3000"
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      NEXTAUTH_SECRET: "test_secret_key_for_ci"
 
     steps:
       - name: Checkout repo
@@ -27,14 +43,18 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: "npm"
+          cache-dependency-path: ./nextjsLibreria/package-lock.json
 
       - name: Install dependencies
         run: npm install
 
       - name: Generate Prisma Client
         run: npx prisma generate
+
+      - name: Push database schema
+        run: npx prisma db push
 
       - name: Run Vitest
         run: npm run test:ci
