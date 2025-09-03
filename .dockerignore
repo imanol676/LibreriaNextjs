@@ -1,0 +1,53 @@
+# Dependencies
+nextjsLibreria/node_modules
+nextjsLibreria/.next
+nextjsLibreria/.env.local
+nextjsLibreria/.env.development.local
+nextjsLibreria/.env.test.local
+nextjsLibreria/.env.production.local
+
+# Testing
+nextjsLibreria/tests
+nextjsLibreria/.vitest
+nextjsLibreria/coverage
+
+# Misc
+.git
+.gitignore
+README.md
+.github
+nextjsLibreria/.gitignore
+
+# Debug
+nextjsLibreria/npm-debug.log*
+nextjsLibreria/yarn-debug.log*
+nextjsLibreria/yarn-error.log*
+
+# Local env files
+nextjsLibreria/.env*.local
+
+# Vercel
+nextjsLibreria/.vercel
+
+# TypeScript
+nextjsLibreria/.tsbuildinfo
+nextjsLibreria/next-env.d.ts
+
+# OS
+.DS_Store
+*.swp
+*.swo
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Prisma
+nextjsLibreria/prisma/dev.db*
+nextjsLibreria/prisma/migrations
