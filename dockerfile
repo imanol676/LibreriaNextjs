@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY nextjsLibreria/package.json nextjsLibreria/package-lock.json* ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM node:20-alpine AS builder
@@ -23,6 +23,13 @@ RUN npx prisma generate
 
 # Build Next.js application
 RUN npm run build
+
+# Install production dependencies only
+FROM node:20-alpine AS prod-deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY nextjsLibreria/package.json nextjsLibreria/package-lock.json* ./
+RUN npm ci --omit=dev
 
 # Production image, copy all the files and run next
 FROM node:20-alpine AS runner
@@ -46,6 +53,7 @@ RUN chown nextjs:nodejs .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 USER nextjs
 
