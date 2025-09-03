@@ -21,7 +21,7 @@ describe("searchBooks", () => {
 
     const books = await searchBooks("python");
     expect(books).toHaveLength(1);
-    expect(books[0].volumeInfo).toBe("Libro 1");
+    expect(books[0].volumeInfo.title).toBe("Libro 1");
   });
 
   it("devuelve [] cuando la API no tiene resultados", async () => {
