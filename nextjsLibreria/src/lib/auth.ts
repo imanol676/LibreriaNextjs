@@ -19,7 +19,7 @@ export function verifyToken(token: string) {
   }
 }
 
-export async function getUserFromRequest(req: NextRequest | any) {
+export async function getUserFromRequest(req: NextRequest | Request) {
   if (req instanceof Request) {
     const userId = req.headers.get("x-user-id");
     if (userId) {

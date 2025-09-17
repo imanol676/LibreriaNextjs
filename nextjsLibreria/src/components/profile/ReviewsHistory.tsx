@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface User {
   id: string;
@@ -28,7 +29,7 @@ interface ReviewsHistoryProps {
   user: User;
 }
 
-export default function ReviewsHistory({ user }: ReviewsHistoryProps) {
+export default function ReviewsHistory({ user: _user }: ReviewsHistoryProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -106,7 +107,7 @@ export default function ReviewsHistory({ user }: ReviewsHistoryProps) {
       });
 
       if (response.ok) {
-        const updatedReview = await response.json();
+        await response.json(); // Response procesado pero no usado
         setReviews(
           reviews.map((review) =>
             review.id === reviewId
@@ -219,9 +220,11 @@ export default function ReviewsHistory({ user }: ReviewsHistoryProps) {
               {/* Book Info */}
               <div className="flex-shrink-0">
                 {review.book.thumbnailUrl && (
-                  <img
+                  <Image
                     src={review.book.thumbnailUrl}
                     alt={review.book.title}
+                    width={80}
+                    height={112}
                     className="w-20 h-28 object-cover rounded-lg shadow-lg mx-auto md:mx-0"
                   />
                 )}

@@ -2,6 +2,7 @@
 import {
   useState,
   useEffect,
+  useCallback,
   createContext,
   useContext,
   ReactNode,
@@ -54,7 +55,7 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const refreshFavorites = async () => {
+  const refreshFavorites = useCallback(async () => {
     if (!user) {
       setFavorites([]);
       return;
@@ -72,11 +73,11 @@ export function FavoritesProvider({ children }: FavoritesProviderProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     refreshFavorites();
-  }, [user]);
+  }, [user, refreshFavorites]);
 
   const isFavorite = (bookId: string): boolean => {
     return favorites.some((fav) => fav.bookId === bookId);
