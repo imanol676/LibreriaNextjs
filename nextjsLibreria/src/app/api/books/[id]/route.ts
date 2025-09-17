@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { getBookById, pickThumb } from "@/lib/googleBooks";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  _: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: bookId } = await params;
