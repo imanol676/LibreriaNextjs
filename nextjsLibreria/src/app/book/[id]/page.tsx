@@ -1,5 +1,6 @@
 import { pickThumb, getBookById } from "@/lib/googleBooks";
 import ReviewClient from "./review-client";
+import FavoriteButton from "@/components/FavoriteButton";
 
 export default async function BookPage({
   params,
@@ -34,6 +35,15 @@ export default async function BookPage({
           <p className="text-sm mt-2 opacity-70">
             {g.volumeInfo.publisher} • {g.volumeInfo.publishedDate}
           </p>
+
+          <div className="mt-4">
+            <FavoriteButton
+              bookId={g.id}
+              title={g.volumeInfo.title ?? "Sin título"}
+              authors={(g.volumeInfo.authors ?? []).join(", ")}
+              thumbnail={thumb ?? undefined}
+            />
+          </div>
         </div>
       </div>
 

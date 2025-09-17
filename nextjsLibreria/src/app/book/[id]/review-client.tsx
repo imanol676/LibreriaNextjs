@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Review = {
   id: string;
@@ -17,6 +18,7 @@ export default function ReviewClient(props: {
   thumbnail?: string | null;
 }) {
   const { googleId, title, authors, thumbnail } = props;
+  const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,6 +110,11 @@ export default function ReviewClient(props: {
   }
 
   async function vote(reviewId: string, value: 1 | -1) {
+    if (!user) {
+      alert("Debes iniciar sesión para votar");
+      return { error: "Usuario no autenticado" };
+    }
+
     try {
       const res = await fetch(`/api/reviews/${reviewId}/vote`, {
         method: "POST",
@@ -139,40 +146,52 @@ export default function ReviewClient(props: {
     <section className="mt-8">
       <h2 className="text-xl font-medium">Reseñas</h2>
 
-      <form
-        onSubmit={submitReview}
-        className="mt-4 border rounded-xl p-4 space-y-3"
-      >
-        <div className="flex items-center gap-2">
-          <label className="text-sm">Calificación:</label>
-          <select
-            className="border rounded px-2 py-1"
-            value={rating}
-            onChange={(e) => setRating(Number(e.target.value))}
-          >
-            {[5, 4, 3, 2, 1]
-              .reverse()
-              .reverse()
-              .map((n) => (
-                <option key={n} value={n}>
-                  {n} ⭐
-                </option>
-              ))}
-          </select>
+      {user ? (
+        <form
+          onSubmit={submitReview}
+          className="mt-4 border rounded-xl p-4 space-y-3"
+        >
+          <div className="flex items-center gap-2">
+            <label className="text-sm">Calificación:</label>
+            <select
+              className="border rounded px-2 py-1"
+              value={rating}
+              onChange={(e) => setRating(Number(e.target.value))}
+            >
+              {[5, 4, 3, 2, 1]
+                .reverse()
+                .reverse()
+                .map((n) => (
+                  <option key={n} value={n}>
+                    {n} ⭐
+                  </option>
+                ))}
+            </select>
+          </div>
+          <textarea
+            className="w-full border rounded-lg p-2"
+            placeholder="Escribe tu reseña..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={4}
+            required
+            minLength={3}
+          />
+          <button className="border rounded-lg px-4 py-2" disabled={submitting}>
+            {submitting ? "Publicando…" : "Publicar reseña"}
+          </button>
+        </form>
+      ) : (
+        <div className="mt-4 border rounded-xl p-4 bg-gray-50 text-center">
+          <p className="text-gray-600 mb-3">
+            📝 Debes iniciar sesión para escribir una reseña
+          </p>
+          <p className="text-sm text-gray-500">
+            Inicia sesión en tu cuenta para compartir tu opinión sobre este
+            libro
+          </p>
         </div>
-        <textarea
-          className="w-full border rounded-lg p-2"
-          placeholder="Escribe tu reseña..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={4}
-          required
-          minLength={3}
-        />
-        <button className="border rounded-lg px-4 py-2" disabled={submitting}>
-          {submitting ? "Publicando…" : "Publicar reseña"}
-        </button>
-      </form>
+      )}
 
       {loading ? (
         <p className="mt-4">Cargando reseñas…</p>
@@ -194,16 +213,28 @@ export default function ReviewClient(props: {
               <div className="mt-3 flex items-center gap-2">
                 <button
                   onClick={() => vote(r.id, 1)}
-                  className="border rounded px-2 py-1"
+                  className={`border rounded px-2 py-1 ${
+                    user
+                      ? "hover:bg-green-50 hover:border-green-300"
+                      : "opacity-50 cursor-not-allowed"
+                  }`}
                   aria-label="Votar a favor"
+                  disabled={!user}
+                  title={user ? "Votar a favor" : "Inicia sesión para votar"}
                 >
                   ▲
                 </button>
                 <span className="min-w-6 text-center">{r.score}</span>
                 <button
                   onClick={() => vote(r.id, -1)}
-                  className="border rounded px-2 py-1"
+                  className={`border rounded px-2 py-1 ${
+                    user
+                      ? "hover:bg-red-50 hover:border-red-300"
+                      : "opacity-50 cursor-not-allowed"
+                  }`}
                   aria-label="Votar en contra"
+                  disabled={!user}
+                  title={user ? "Votar en contra" : "Inicia sesión para votar"}
                 >
                   ▼
                 </button>
