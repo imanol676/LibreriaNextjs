@@ -15,8 +15,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY nextjsLibreria/ ./
 
 # Set build-time environment variables
-ENV DATABASE_CONNECTION_STRING="postgresql://placeholder:placeholder@localhost:5432/placeholder"
-ENV DIRECT_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
+ARG MONGODB_URL
+ARG JWT_SECRET
 
 # Generate Prisma Client
 RUN npx prisma generate

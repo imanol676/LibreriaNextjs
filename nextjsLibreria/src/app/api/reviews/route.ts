@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ensureUser } from "@/lib/user";
+import { getUserFromRequest } from "@/lib/auth";
 import { z } from "zod";
 
 const reviewBodySchema = z.object({
@@ -13,7 +13,12 @@ const reviewBodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const user = await ensureUser();
+  const user = await getUserFromRequest(request);
+
+  if (!user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await request.json();
   const parsedBody = reviewBodySchema.parse(body);
 

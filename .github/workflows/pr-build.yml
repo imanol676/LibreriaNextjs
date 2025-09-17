@@ -15,30 +15,35 @@ jobs:
         working-directory: ./nextjsLibreria
 
     services:
-      postgres:
-        image: postgres:15
+      mongodb:
+        image: mongo:7.0
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: build
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: password
+          MONGO_INITDB_DATABASE: test
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 27017:27017
 
     env:
-      DATABASE_CONNECTION_STRING: "postgresql://postgres:postgres@localhost:5432/build"
-      DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/build"
-      PASSWORD: "build_password"
-      NEXTAUTH_URL: "http://localhost:3000"
-      NEXTAUTH_SECRET: "build_secret_key_for_ci"
-
+      MONGODB_URL: "mongodb://root:password@localhost:27017/test?authSource=admin&retryWrites=true&w=majority"
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Install mongosh
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg curl
+          curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg
+          echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-mongosh
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -49,6 +54,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Wait for MongoDB
+        run: |
+          timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.runCommand({ ping: 1 })" --quiet; do sleep 2; done'
+        shell: bash
 
       - name: Generate Prisma client
         run: npx prisma generate

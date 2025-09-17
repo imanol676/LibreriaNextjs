@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ensureUser } from "@/lib/user";
+import { getUserFromRequest } from "@/lib/auth";
 
 type Body = { value: number };
 
@@ -8,9 +8,13 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await ensureUser();
+  const user = await getUserFromRequest(request);
   const body = (await request.json()) as Body;
   const { value } = body;
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   if (value !== 1 && value !== -1) {
     return NextResponse.json({ error: "Invalid vote value" }, { status: 400 });
