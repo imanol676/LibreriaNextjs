@@ -15,22 +15,22 @@ jobs:
         working-directory: ./nextjsLibreria
 
     services:
-      postgres:
-        image: postgres:15
+      mongodb:
+        image: mongo:7.0
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: test
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: password
+          MONGO_INITDB_DATABASE: test
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 27017:27017
 
     env:
-      MONGODB_URL: ${{ secrets.MONGODB_URL }}
+      MONGODB_URL: "mongodb://root:password@localhost:27017/test?authSource=admin&retryWrites=true&w=majority"
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
     steps:
@@ -46,6 +46,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Wait for MongoDB
+        run: |
+          timeout 60 bash -c 'until mongosh --host localhost:27017 --eval "db.runCommand({ ping: 1 })" --quiet; do sleep 2; done'
+        shell: bash
 
       - name: Generate Prisma Client
         run: npx prisma generate
