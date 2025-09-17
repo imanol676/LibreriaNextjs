@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useFavorites } from "@/contexts/FavoritesContext";
 
 interface User {
@@ -13,7 +14,7 @@ interface FavoritesListProps {
   user: User;
 }
 
-export default function FavoritesList({ user }: FavoritesListProps) {
+export default function FavoritesList({ user: _user }: FavoritesListProps) {
   const { favorites, loading, removeFromFavorites, refreshFavorites } =
     useFavorites();
   const [error, setError] = useState("");
@@ -96,9 +97,11 @@ export default function FavoritesList({ user }: FavoritesListProps) {
             <div className="flex flex-col h-full">
               {favorite.book.thumbnailUrl && (
                 <div className="mb-4 flex justify-center">
-                  <img
+                  <Image
                     src={favorite.book.thumbnailUrl}
                     alt={favorite.book.title}
+                    width={96}
+                    height={144}
                     className="w-24 h-36 object-cover rounded-lg shadow-lg"
                   />
                 </div>

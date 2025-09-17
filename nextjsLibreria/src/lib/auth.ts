@@ -19,7 +19,7 @@ export function verifyToken(token: string) {
   }
 }
 
-export async function getUserFromRequest(req: NextRequest | any) {
+export async function getUserFromRequest(req: NextRequest | Request) {
   if (req instanceof Request) {
     const userId = req.headers.get("x-user-id");
     if (userId) {
@@ -29,12 +29,16 @@ export async function getUserFromRequest(req: NextRequest | any) {
 
   let token: string | undefined;
 
-  if (req instanceof Request) {
+  if (req instanceof NextRequest) {
+    // NextRequest has cookies
+    token =
+      req.cookies.get("token")?.value ||
+      req.headers.get("authorization")?.split(" ")[1];
+  } else {
+    // Regular Request - parse from headers
     token =
       req.headers.get("authorization")?.split(" ")[1] ||
       req.headers.get("cookie")?.split("token=")[1]?.split(";")[0];
-  } else {
-    token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
   }
 
   if (!token) return null;

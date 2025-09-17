@@ -27,7 +27,7 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  const handleAuthSuccess = (userData: User) => {
+  const handleAuthSuccess = (_userData: User) => {
     setActiveTab("favorites");
   };
 

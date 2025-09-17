@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type Item = {
   id: string;
@@ -107,9 +108,11 @@ export default function Home() {
                   <div className="flex flex-col h-full">
                     {book.thumbnail && (
                       <div className="mb-4 flex justify-center">
-                        <img
+                        <Image
                           src={book.thumbnail}
                           alt={book.title}
+                          width={128}
+                          height={192}
                           className="w-32 h-48 object-cover rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
                         />
                       </div>

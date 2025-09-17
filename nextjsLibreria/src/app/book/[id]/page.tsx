@@ -1,6 +1,7 @@
 import { pickThumb, getBookById } from "@/lib/googleBooks";
 import ReviewClient from "./review-client";
 import FavoriteButton from "@/components/FavoriteButton";
+import Image from "next/image";
 
 export default async function BookPage({
   params,
@@ -25,7 +26,13 @@ export default async function BookPage({
     <main className="max-w-3xl mx-auto p-6 ">
       <div className="flex gap-4">
         {thumb && (
-          <img src={thumb} alt="" className="w-28 h-40 object-cover rounded" />
+          <Image
+            src={thumb}
+            alt=""
+            width={112}
+            height={160}
+            className="w-28 h-40 object-cover rounded"
+          />
         )}
         <div>
           <h1 className="text-2xl font-semibold">{g.volumeInfo.title}</h1>

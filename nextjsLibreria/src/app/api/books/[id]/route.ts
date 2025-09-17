@@ -1,9 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { getBookById, pickThumb } from "@/lib/googleBooks";
 import { prisma } from "@/lib/prisma";
 
+type ReviewWithUserAndVotes = {
+  id: string;
+  rating: number;
+  content: string;
+  createdAt: Date;
+  user: { id: string; name: string | null };
+  votes: { value: number }[];
+};
+
 export async function GET(
-  _: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: bookId } = await params;
@@ -67,26 +76,17 @@ export async function GET(
       throw new Error("Failed to create or retrieve book from database");
     }
 
-    const local = dbBook.reviews.map(
-      (r: {
-        id: string;
-        rating: number;
-        content: string;
-        createdAt: Date;
-        user: { id: string; name: string | null };
-        votes: { value: number }[];
-      }) => ({
-        id: r.id,
-        rating: r.rating,
-        content: r.content,
-        createdAt: r.createdAt,
-        user: { id: r.user.id, displayName: r.user.name ?? "Guest" },
-        score: r.votes.reduce(
-          (s: number, v: { value: number }) => s + v.value,
-          0
-        ),
-      })
-    );
+    const local = dbBook.reviews.map((r: ReviewWithUserAndVotes) => ({
+      id: r.id,
+      rating: r.rating,
+      content: r.content,
+      createdAt: r.createdAt,
+      user: { id: r.user.id, displayName: r.user.name ?? "Guest" },
+      score: r.votes.reduce(
+        (s: number, v: { value: number }) => s + v.value,
+        0
+      ),
+    }));
 
     return NextResponse.json({ ...mappedBook, local: { reviews: local } });
   } catch (error) {
