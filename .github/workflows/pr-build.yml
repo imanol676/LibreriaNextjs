@@ -30,12 +30,8 @@ jobs:
           - 5432:5432
 
     env:
-      DATABASE_CONNECTION_STRING: "postgresql://postgres:postgres@localhost:5432/build"
-      DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/build"
-      PASSWORD: "build_password"
-      NEXTAUTH_URL: "http://localhost:3000"
-      NEXTAUTH_SECRET: "build_secret_key_for_ci"
-
+      mongodb_url: ${{ secrets.MONGODB_URL }}
+      jwt_secret: ${{ secrets.JWT_SECRET }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
