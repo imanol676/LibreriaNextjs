@@ -53,28 +53,33 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Review creation error:", error);
-    
+
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
-          message: "Validation error", 
-          errors: error.issues 
-        }, 
+        {
+          message: "Validation error",
+          errors: error.issues,
+        },
         { status: 400 }
       );
     }
-    
+
     // Handle Prisma unique constraint violations
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
       return NextResponse.json(
-        { message: "Review already exists for this book" }, 
+        { message: "Review already exists for this book" },
         { status: 409 }
       );
     }
-    
+
     return NextResponse.json(
-      { message: "Internal server error" }, 
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

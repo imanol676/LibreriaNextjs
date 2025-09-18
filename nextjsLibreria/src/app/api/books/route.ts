@@ -40,18 +40,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(book, { status: 201 });
   } catch (error) {
     console.error("Error creating book:", error);
-    
+
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
-          message: "Validation error", 
-          errors: error.issues 
-        }, 
+        {
+          message: "Validation error",
+          errors: error.issues,
+        },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(books);
   } catch (error) {
     console.error("Error with books:", error);
-    
+
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }
