@@ -59,14 +59,19 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           message: "Validation error",
-          errors: error.errors,
+          errors: error.issues,
         },
         { status: 400 }
       );
     }
 
     // Handle Prisma unique constraint violations
-    if (error.code === "P2002") {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
       return NextResponse.json(
         { message: "Review already exists for this book" },
         { status: 409 }
