@@ -1,35 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserFromRequest } from "@/lib/auth";
+import { bookCreateSchema } from "@/lib/schemas";
+import { z } from "zod";
 
 export async function POST(request: NextRequest) {
-  const user = await getUserFromRequest(request);
-  if (!user) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
   try {
-    const {
-      id,
-      title,
-      authors,
-      thumbnailUrl,
-      description,
-      pageCount,
-      categories,
-      publishedDate,
-    } = await request.json();
-
-    if (!id || !title) {
-      return NextResponse.json(
-        { message: "Book ID and title are required" },
-        { status: 400 }
-      );
+    const user = await getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+
+    const body = await request.json();
+    const validatedData = bookCreateSchema.parse(body);
 
     // Verificar si el libro ya existe
     const existingBook = await prisma.book.findUnique({
-      where: { id },
+      where: { id: validatedData.id },
     });
 
     if (existingBook) {
@@ -39,14 +26,14 @@ export async function POST(request: NextRequest) {
     // Crear el libro si no existe
     const book = await prisma.book.create({
       data: {
-        id,
-        title,
-        authors: authors || [],
-        thumbnailUrl,
-        description,
-        pageCount,
-        categories: categories || [],
-        publishedDate,
+        id: validatedData.id,
+        title: validatedData.title,
+        authors: validatedData.authors,
+        thumbnailUrl: validatedData.thumbnailUrl,
+        description: validatedData.description,
+        pageCount: validatedData.pageCount,
+        categories: validatedData.categories,
+        publishedDate: validatedData.publishedDate,
       },
     });
 
@@ -88,7 +75,19 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(books);
   } catch (error) {
-    console.error("Error getting books:", error);
+    console.error("Error with books:", error);
+
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        {
+          message: "Validation error",
+          errors: error.errors,
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }
